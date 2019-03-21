@@ -19,4 +19,5 @@
 ## 开始学习
 
 [第一步：solidity合约编译与调用](https://github.com/yekai1003/gosolkit/blob/level1/README.md)
+[第二步：go语言调用命令行自动编译合约](https://github.com/yekai1003/gosolkit/blob/level2/README.md)
 
