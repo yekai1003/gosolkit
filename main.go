@@ -1,5 +1,27 @@
 package main
 
+import (
+	"fmt"
+	"os"
+)
+
+func Usage() {
+	fmt.Printf("%s 1  -- compiler code\n", os.Args[0])
+	fmt.Printf("%s 2  -- build test code\n", os.Args[0])
+}
+
 func main() {
-	CompilerRun()
+	if len(os.Args) < 2 {
+		Usage()
+		os.Exit(0)
+	}
+	if os.Args[1] == "1" {
+		CompilerRun()
+	} else if os.Args[1] == "1" {
+		//build test code
+	} else {
+		Usage()
+		os.Exit(0)
+	}
+
 }

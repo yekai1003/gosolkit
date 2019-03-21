@@ -1,0 +1,10 @@
+[version]
+auth = "yekai"
+company = "pdj"
+buildday = "2019-01-01"
+ver = "1.0.0" # 版本
+
+[common]
+solidityPath = "sol"
+goPath = "contracts"
+abiSH = "./abi.sh"
