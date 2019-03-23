@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"gosolkit/templates"
 	"os"
 )
 
@@ -17,8 +18,9 @@ func main() {
 	}
 	if os.Args[1] == "1" {
 		CompilerRun()
-	} else if os.Args[1] == "1" {
+	} else if os.Args[1] == "2" {
 		//build test code
+		templates.Run()
 	} else {
 		Usage()
 		os.Exit(0)
