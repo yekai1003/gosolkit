@@ -14,6 +14,21 @@ type DeployContractParams struct {
 	DeployParams string
 }
 
+//无gas函数调用
+type FuncNoGasParams struct {
+	FuncName        string
+	NewContractName string
+	OutParams       string
+	InputParams     string
+}
+
+//有gas函数调用
+type FuncGasParams struct {
+	FuncName        string
+	NewContractName string
+	InputParams     string
+}
+
 type InputsOutPuts struct {
 	Name string
 	Type string
@@ -73,17 +88,38 @@ func Impl_run_code() error {
 	//fmt.Println(infos)
 
 	//3. 写入部署合约代码
-	//定义模版
+	//定义部署模版
 	deploy_temp, err := template.New("deploy").Parse(test_deploy_temp)
 	if err != nil {
-		fmt.Println("failed to template ", err)
+		fmt.Println("failed to template deploy", err)
 		return err
 	}
 	var deploy_data DeployContractParams
 	deploy_data.DeployName = "DeployPdbank"
 
+	//定义nogas函数的模版
+	nogas_temp, err := template.New("nogas").Parse(test_nogas_temp)
+	if err != nil {
+		fmt.Println("failed to template nogas_temp", err)
+		return err
+	}
+
+	var func_nogas_data FuncNoGasParams
+	func_nogas_data.NewContractName = "NewPdbank"
+
+	//定义有gas模版
+	hasgas_temp, err := template.New("hasgas").Parse(test_gas_temp)
+	if err != nil {
+		fmt.Println("failed to template hasgas_temp", err)
+		return err
+	}
+
+	var func_gas_data FuncGasParams
+	func_gas_data.NewContractName = "NewPdbank"
+
 	//对abi进行遍历处理
 	for _, v := range abiInfos {
+		v.Name = strings.Title(v.Name) //标题优化，首字母大写, hello world - > Hello World
 		if v.Type == "constructor" {
 			// 如果是构造函数-部署函数
 			deploy_data.DeployParams = "(auth,testclient"
@@ -104,6 +140,64 @@ func Impl_run_code() error {
 			if err != nil {
 				fmt.Println("failed to template Execute ", err)
 				return err
+			}
+		} else {
+			//处理其他函数
+			if len(v.Outputs) > 0 {
+				//不需要gas函数
+				func_nogas_data.FuncName = v.Name
+
+				func_nogas_data.InputParams = "(nil"
+				for _, vv := range v.Inputs {
+					//需要根据输入数据类型来判断如何处理:string,address,uint256
+					if vv.Type == "address" {
+						func_nogas_data.InputParams += ",common.HexToAddress(\"0xD55E88D9156355C584982Db2C96dD1C2c63788C2\")"
+					} else if vv.Type == "uint256" {
+						func_nogas_data.InputParams += ",big.NewInt(1000)"
+					} else if vv.Type == "string" {
+						func_nogas_data.InputParams += ",\"yekai\""
+					}
+
+				}
+				func_nogas_data.InputParams += ")"
+				//输入参数
+				num := 0
+				strOutPuts := ""
+				for _, _ = range v.Outputs {
+					strOutPuts = fmt.Sprintf("%sdata%d,", strOutPuts, num)
+					num++
+				}
+				strOutPuts += "err"
+				func_nogas_data.OutParams = strOutPuts
+
+				//模版的执行
+				err = nogas_temp.Execute(outfile, &func_nogas_data)
+				if err != nil {
+					fmt.Println("failed to template nogas Execute ", err)
+					return err
+				}
+			} else {
+				//需要消耗gas
+				func_gas_data.FuncName = v.Name
+				func_gas_data.InputParams = "(auth"
+				for _, vv := range v.Inputs {
+					//需要根据输入数据类型来判断如何处理:string,address,uint256
+					if vv.Type == "address" {
+						func_gas_data.InputParams += ",common.HexToAddress(\"0xD55E88D9156355C584982Db2C96dD1C2c63788C2\")"
+					} else if vv.Type == "uint256" {
+						func_gas_data.InputParams += ",big.NewInt(1000)"
+					} else if vv.Type == "string" {
+						func_gas_data.InputParams += ",\"yekai\""
+					}
+
+				}
+				func_gas_data.InputParams += ")"
+				//模版的执行
+				err = hasgas_temp.Execute(outfile, &func_gas_data)
+				if err != nil {
+					fmt.Println("failed to template hasgas Execute ", err)
+					return err
+				}
 			}
 		}
 	}

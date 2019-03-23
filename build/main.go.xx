@@ -1,6 +1,3 @@
-package templates
-
-const test_main_temp = `
 package main
 
 import (
@@ -69,8 +66,7 @@ func MakeAuth(addr, pass string) (*bind.TransactOpts, error) {
 
 	return nil, nil
 }
-`
-const test_deploy_temp = `
+
 func CallDeploy() error {
 	//创建身份,需要私钥= pass+keystore文件
 	auth, err := MakeAuth("0x791443d21a76e16cc510b6b1684344d2a5ce751c", "123")
@@ -78,7 +74,8 @@ func CallDeploy() error {
 		fmt.Println("failed to MakeAuth auth", err)
 		return err
 	}
-	addr, ts, _, err := contracts.{{.DeployName}}{{.DeployParams}}
+	auth.GasLimit = 400000
+	addr, ts, _, err := contracts.DeployPdbank(auth, testClient, "yekai233")
 	if err != nil {
 		fmt.Println("failed to DeployPdbank", err)
 		return err
@@ -87,32 +84,29 @@ func CallDeploy() error {
 	fmt.Println("addr=", addr.Hex(), "hash=", ts.Hash().Hex())
 	return err
 }
-`
 
-const test_nogas_temp = `
-func Call{{.FuncName}}() error {
+func CallBankName() error {
 
 	//使用之前部署得到的合约地址
-	instance, err := contracts.{{.NewContractName}}(common.HexToAddress("0xD55E88D9156355C584982Db2C96dD1C2c63788C2"), testClient)
+	//NewPdbank 合约调用的入口
+	pd, err := contracts.NewPdbank(common.HexToAddress("0xD55E88D9156355C584982Db2C96dD1C2c63788C2"), testClient)
 	if err != nil {
-		fmt.Println("failed to instance contract", err)
+		fmt.Println("failed to NewPdbank", err)
 		return err
 	}
 	//调用合约函数
-	{{.OutParams}} := instance.{{.FuncName}}{{.InputParams}}
-	fmt.Println({{.OutParams}})
+	bkname, err := pd.BankName(nil)
+	fmt.Println(bkname, err)
 
 	return err
 }
-`
 
-const test_gas_temp = `
-func Call{{.FuncName}}() error {
+func CallDeposit() error {
 
 	//2. 构造函数入口 - 合约对象
-	instance, err := contracts.{{.NewContractName}}(common.HexToAddress("0xD55E88D9156355C584982Db2C96dD1C2c63788C2"), testClient)
+	pd, err := contracts.NewPdbank(common.HexToAddress("0xD55E88D9156355C584982Db2C96dD1C2c63788C2"), testClient)
 	if err != nil {
-		fmt.Println("failed to contract instance", err)
+		fmt.Println("failed to NewPdbank", err)
 		return err
 	}
 	//3. 设置签名
@@ -122,8 +116,8 @@ func Call{{.FuncName}}() error {
 		return err
 	}
 	//4. 函数调用
-	auth.Value = big.NewInt(0)
-	ts, err := instance.{{.FuncName}}{{.InputParams}}
+	auth.Value = big.NewInt(100000011)
+	ts, err := pd.Deposit(auth)
 	if err != nil {
 		fmt.Println("failed to Deposit ", err)
 		return err
@@ -131,4 +125,10 @@ func Call{{.FuncName}}() error {
 	fmt.Println(ts.Hash().Hex())
 	return err
 }
-`
+
+func main() {
+	CallDeploy()
+	//CallBankName()
+	//CallDeposit()
+	//MakeAuth("0x791443d21a76e16cc510b6b1684344d2a5ce751c", "123")
+}
