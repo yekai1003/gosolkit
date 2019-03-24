@@ -34,6 +34,11 @@ type InputsOutPuts struct {
 	Type string
 }
 
+type FuncInfo struct {
+	FuncName string
+	Num      int
+}
+
 type AbiInfo struct {
 	Constant        bool
 	Inputs          []InputsOutPuts
@@ -122,7 +127,7 @@ func Impl_run_code() error {
 		v.Name = strings.Title(v.Name) //标题优化，首字母大写, hello world - > Hello World
 		if v.Type == "constructor" {
 			// 如果是构造函数-部署函数
-			deploy_data.DeployParams = "(auth,testclient"
+			deploy_data.DeployParams = "(auth,testClient"
 			for _, vv := range v.Inputs {
 				//需要根据输入数据类型来判断如何处理:string,address,uint256
 				if vv.Type == "address" {
@@ -205,7 +210,62 @@ func Impl_run_code() error {
 	return nil
 }
 
+func Impl_main_code() error {
+	//1. 写到哪
+	outfile, err := os.OpenFile("build/main.go", os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0666)
+	if err != nil {
+		fmt.Println("failed to open file", err)
+		return err
+	}
+	defer outfile.Close()
+	// 读取abi文件信息
+	abiInfos, err := readAbi("contracts/pdbank.abi")
+	if err != nil {
+		fmt.Println("failed to read abi", err)
+		return err
+	}
+	funcNames := ""
+	//"abc","def","
+	num := 0
+	var funcInfos []FuncInfo
+	var funcInfo FuncInfo
+	// 2- 第一个函数
+	for _, v := range abiInfos {
+		if v.Type != "constructor" {
+			if num == 0 {
+				//第一个
+				funcNames += fmt.Sprintf(`"%s"`, v.Name)
+			} else {
+				funcNames += fmt.Sprintf(`,"%s"`, v.Name)
+			}
+			num++
+			funcInfo.FuncName = strings.Title(v.Name)
+			funcInfo.Num = num + 1
+			funcInfos = append(funcInfos, funcInfo)
+		}
+	}
+	main_str1 := fmt.Sprintf(test_run_main_temp, funcNames)
+	_, err = outfile.WriteString(main_str1)
+	if err != nil {
+		fmt.Println("failed to write to main.go", err)
+		return err
+	}
+
+	//建立一个模版，输出内容
+	main_temp, err := template.New("main").Parse(test_build_main_temp)
+	if err != nil {
+		fmt.Println("failed to template main", err)
+		return err
+	}
+	err = main_temp.Execute(outfile, funcInfos)
+	if err != nil {
+		fmt.Println("failed to Execute main", err)
+		return err
+	}
+	return err
+}
+
 func Run() {
 	Impl_run_code()
-
+	Impl_main_code()
 }

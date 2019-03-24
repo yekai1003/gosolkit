@@ -1,3 +1,4 @@
+
 package main
 
 import (
@@ -76,8 +77,8 @@ func CallTotalAmount() error {
 		return err
 	}
 	//调用合约函数
-	data0, err := instance.TotalAmount(nil)
-	fmt.Println(data0, err)
+	data0,err := instance.TotalAmount(nil)
+	fmt.Println(data0,err)
 
 	return err
 }
@@ -91,8 +92,8 @@ func CallBankName() error {
 		return err
 	}
 	//调用合约函数
-	data0, err := instance.BankName(nil)
-	fmt.Println(data0, err)
+	data0,err := instance.BankName(nil)
+	fmt.Println(data0,err)
 
 	return err
 }
@@ -106,8 +107,8 @@ func CallBalances() error {
 		return err
 	}
 	//调用合约函数
-	data0, err := instance.Balances(nil, common.HexToAddress("0xD55E88D9156355C584982Db2C96dD1C2c63788C2"))
-	fmt.Println(data0, err)
+	data0,err := instance.Balances(nil,common.HexToAddress("0xD55E88D9156355C584982Db2C96dD1C2c63788C2"))
+	fmt.Println(data0,err)
 
 	return err
 }
@@ -128,7 +129,7 @@ func CallWithdraw() error {
 	}
 	//4. 函数调用
 	auth.Value = big.NewInt(0)
-	ts, err := instance.Withdraw(auth, big.NewInt(1000))
+	ts, err := instance.Withdraw(auth,big.NewInt(1000))
 	if err != nil {
 		fmt.Println("failed to Deposit ", err)
 		return err
@@ -146,8 +147,8 @@ func CallOwner() error {
 		return err
 	}
 	//调用合约函数
-	data0, err := instance.Owner(nil)
-	fmt.Println(data0, err)
+	data0,err := instance.Owner(nil)
+	fmt.Println(data0,err)
 
 	return err
 }
@@ -184,7 +185,7 @@ func CallDeploy() error {
 		fmt.Println("failed to MakeAuth auth", err)
 		return err
 	}
-	addr, ts, _, err := contracts.DeployPdbank(auth, testClient, "yekai")
+	addr, ts, _, err := contracts.DeployPdbank(auth,testClient,"yekai")
 	if err != nil {
 		fmt.Println("failed to DeployPdbank", err)
 		return err
