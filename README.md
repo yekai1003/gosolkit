@@ -1,4 +1,4 @@
-# Go语言打造以太坊智能合约测试框架
+# Go语言打造以太坊智能合约开发框架
 
 ## 前言
 
@@ -17,10 +17,16 @@
 - go与命令行调用
 - go语言与正则表达式处理
 
-## 开始学习
+## 开始学习，三步走教程如下
 
 [第一步：solidity合约编译与调用](https://github.com/yekai1003/gosolkit/blob/level1/README.md)
 
 
 [第二步：go语言调用命令行自动编译合约](https://github.com/yekai1003/gosolkit/blob/level2/README.md)
 
+[第二步：智能合约测试代码自动生成](https://github.com/yekai1003/gosolkit/blob/level3/README.md)
+
+
+### 如果想看视频教程，可以看这里
+
+[Go语言打造以太坊智能合约开发框架](https://edu.51cto.com/sd/b18da)
