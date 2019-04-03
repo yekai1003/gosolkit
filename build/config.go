@@ -1,3 +1,4 @@
+
 package main
 
 import (
@@ -19,9 +20,13 @@ type VersionInfo struct {
 }
 
 type CommonInfo struct {
-	SolidityPath string //智能合约原路径
-	GoPath       string //输出go代码路径
-	AbiSH        string //处理abi的shell脚本路径
+	ConnStr      string //以太坊节点地址
+	KeyStoreDir  string //key存放路径
+	ContractAddr string //合约地址
+	DeployAddr   string
+	DeployPass   string
+	TestAddr     string
+	TestPass     string
 }
 
 var ServConf ServerConfig

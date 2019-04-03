@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"text/template"
+	"time"
 )
 
 type DeployContractParams struct {
@@ -72,7 +73,7 @@ func readAbi(abifile string) ([]AbiInfo, error) {
 
 func Impl_run_code() error {
 	//1. 写到哪
-	outfile, err := os.OpenFile("build/solcall.go", os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0666)
+	outfile, err := os.OpenFile(ServConf.Common.BuildPath+"/"+ServConf.Common.CodeName, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0666)
 	if err != nil {
 		fmt.Println("failed to open file", err)
 		return err
@@ -85,7 +86,7 @@ func Impl_run_code() error {
 		return err
 	}
 	// 读取abi文件信息
-	abiInfos, err := readAbi("contracts/pdbank.abi")
+	abiInfos, err := readAbi(ServConf.Common.GoPath + "/" + ServConf.Common.ContractName + ".abi")
 	if err != nil {
 		fmt.Println("failed to read abi", err)
 		return err
@@ -110,7 +111,7 @@ func Impl_run_code() error {
 	}
 
 	var func_nogas_data FuncNoGasParams
-	func_nogas_data.NewContractName = "NewPdbank"
+	func_nogas_data.NewContractName = "New" + strings.Title(ServConf.Common.ContractName)
 
 	//定义有gas模版
 	hasgas_temp, err := template.New("hasgas").Parse(test_gas_temp)
@@ -120,7 +121,7 @@ func Impl_run_code() error {
 	}
 
 	var func_gas_data FuncGasParams
-	func_gas_data.NewContractName = "NewPdbank"
+	func_gas_data.NewContractName = "New" + strings.Title(ServConf.Common.ContractName)
 
 	//对abi进行遍历处理
 	for _, v := range abiInfos {
@@ -131,7 +132,7 @@ func Impl_run_code() error {
 			for _, vv := range v.Inputs {
 				//需要根据输入数据类型来判断如何处理:string,address,uint256
 				if vv.Type == "address" {
-					deploy_data.DeployParams += ",common.HexToAddress(\"0xD55E88D9156355C584982Db2C96dD1C2c63788C2\")"
+					deploy_data.DeployParams += ",common.HexToAddress(ServConf.Common.TestAddr)"
 				} else if vv.Type == "uint256" {
 					deploy_data.DeployParams += ",big.NewInt(1000)"
 				} else if vv.Type == "string" {
@@ -156,7 +157,7 @@ func Impl_run_code() error {
 				for _, vv := range v.Inputs {
 					//需要根据输入数据类型来判断如何处理:string,address,uint256
 					if vv.Type == "address" {
-						func_nogas_data.InputParams += ",common.HexToAddress(\"0xD55E88D9156355C584982Db2C96dD1C2c63788C2\")"
+						func_nogas_data.InputParams += ",common.HexToAddress(ServConf.Common.TestAddr)"
 					} else if vv.Type == "uint256" {
 						func_nogas_data.InputParams += ",big.NewInt(1000)"
 					} else if vv.Type == "string" {
@@ -188,7 +189,7 @@ func Impl_run_code() error {
 				for _, vv := range v.Inputs {
 					//需要根据输入数据类型来判断如何处理:string,address,uint256
 					if vv.Type == "address" {
-						func_gas_data.InputParams += ",common.HexToAddress(\"0xD55E88D9156355C584982Db2C96dD1C2c63788C2\")"
+						func_gas_data.InputParams += ",common.HexToAddress(ServConf.Common.TestAddr)"
 					} else if vv.Type == "uint256" {
 						func_gas_data.InputParams += ",big.NewInt(1000)"
 					} else if vv.Type == "string" {
@@ -212,14 +213,14 @@ func Impl_run_code() error {
 
 func Impl_main_code() error {
 	//1. 写到哪
-	outfile, err := os.OpenFile("build/main.go", os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0666)
+	outfile, err := os.OpenFile(ServConf.Common.BuildPath+"/"+ServConf.Common.MainCodeName, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0666)
 	if err != nil {
 		fmt.Println("failed to open file", err)
 		return err
 	}
 	defer outfile.Close()
 	// 读取abi文件信息
-	abiInfos, err := readAbi("contracts/pdbank.abi")
+	abiInfos, err := readAbi(ServConf.Common.GoPath + "/" + ServConf.Common.ContractName + ".abi")
 	if err != nil {
 		fmt.Println("failed to read abi", err)
 		return err
@@ -265,7 +266,44 @@ func Impl_main_code() error {
 	return err
 }
 
+func Impl_config_code() error {
+	//1. 写到哪
+	outfile, err := os.OpenFile(ServConf.Common.BuildPath+"/"+ServConf.Common.ConfigCodeName, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0666)
+	if err != nil {
+		fmt.Println("failed to open file", err)
+		return err
+	}
+	defer outfile.Close()
+	_, err = outfile.WriteString(config_build_temp)
+	if err != nil {
+		fmt.Println("failed to WriteString config", err)
+		return err
+	}
+	//创建一个文件-config.toml
+	outfile2, err := os.OpenFile(ServConf.Common.BuildPath+"/"+ServConf.Common.ConfigTomlName, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0666)
+	if err != nil {
+		fmt.Println("failed to open file", err)
+		return err
+	}
+	defer outfile2.Close()
+	//构建模版
+	tmpl, err := template.New("config_toml").Parse(config_toml_temp)
+	if err != nil {
+		fmt.Println("failed to parse config_toml_temp", err)
+		return err
+	}
+	data := ServConf.Version
+	data.BuildDay = time.Now().Format("2006-01-02")
+	err = tmpl.Execute(outfile2, data)
+	if err != nil {
+		fmt.Println("failed to Execute config_toml_temp", err)
+		return err
+	}
+	return nil
+}
+
 func Run() {
 	Impl_run_code()
 	Impl_main_code()
+	Impl_config_code()
 }

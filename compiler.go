@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"gosolkit/templates"
 	"io/ioutil"
 	"os/exec"
 	"strings"
@@ -24,13 +25,13 @@ func BuildAbi(codePath string) error {
 	abiName := strings.Replace(codePath, ".sol", ".abi", -1)
 	goName := strings.Replace(codePath, ".sol", ".go", -1)
 
-	cmd := exec.Command(ServConf.Common.AbiSH, goName, abiName)
+	cmd := exec.Command(templates.ServConf.Common.AbiSH, goName, abiName)
 	return cmd.Run()
 }
 
 //扫描目录，获得全部的文件
 func CompilerRun() error {
-	infos, err := ioutil.ReadDir(ServConf.Common.SolidityPath)
+	infos, err := ioutil.ReadDir(templates.ServConf.Common.SolidityPath)
 	if err != nil {
 		fmt.Println("failed to readdir ", err)
 		return err
@@ -42,13 +43,13 @@ func CompilerRun() error {
 		strfix := string(strNameRune[len(strNameRune)-4:])
 		if strfix == ".sol" && !v.IsDir() {
 			fmt.Println(v.IsDir(), v.Name(), v.Size(), "ok")
-			err = CompilerOnece(ServConf.Common.SolidityPath, v.Name(), ServConf.Common.GoPath)
+			err = CompilerOnece(templates.ServConf.Common.SolidityPath, v.Name(), templates.ServConf.Common.GoPath)
 			if err != nil {
 				fmt.Println("call ompilerOnece err", err)
 				break
 			}
 			//创建abi
-			err = BuildAbi(ServConf.Common.GoPath + "/" + v.Name())
+			err = BuildAbi(templates.ServConf.Common.GoPath + "/" + v.Name())
 			if err != nil {
 				fmt.Println("call BuildAbi err", err)
 				break

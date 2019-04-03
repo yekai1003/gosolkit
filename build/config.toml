@@ -1,0 +1,15 @@
+
+[version]
+auth = "yekai"
+company = "pdj"
+buildday = "2019-03-26"
+ver = "1.0.0" # 版本
+
+[common]
+connStr = "http://localhost:8545"
+keyStoreDir = "/Users/yk/ethdev/data/keystore"
+contractAddr = "0x75ac962ddb0b7a871F7A7ef3ba3E67821e95bb81" #部署之后得到
+deployAddr = "0x791443d21a76e16cc510b6b1684344d2a5ce751c"
+deployPass = "123"
+testAddr = "0x791443d21a76e16cc510b6b1684344d2a5ce751c"
+testPass = "123"

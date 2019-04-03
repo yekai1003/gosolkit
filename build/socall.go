@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -18,7 +17,7 @@ import (
 var testClient *ethclient.Client
 
 func init() {
-	cli, err := Connect("http://localhost:8545")
+	cli, err := Connect(ServConf.Common.ConnStr)
 	if err != nil {
 		log.Fatalln("failed to connect to eth", err)
 	}
@@ -32,7 +31,7 @@ func Connect(connstr string) (*ethclient.Client, error) {
 //签名函数
 func MakeAuth(addr, pass string) (*bind.TransactOpts, error) {
 	//1. 根据addr找到keystore目录下的文件
-	keyDir := "/Users/yk/ethdev/data/keystore"
+	keyDir := ServConf.Common.KeyStoreDir
 	infos, err := ioutil.ReadDir(keyDir)
 	if err != nil {
 		fmt.Println("failed to readdir", err)
@@ -71,14 +70,14 @@ func MakeAuth(addr, pass string) (*bind.TransactOpts, error) {
 func CallTotalAmount() error {
 
 	//使用之前部署得到的合约地址
-	instance, err := contracts.NewPdbank(common.HexToAddress("0xD55E88D9156355C584982Db2C96dD1C2c63788C2"), testClient)
+	instance, err := contracts.NewPdbank(common.HexToAddress(ServConf.Common.ContractAddr), testClient)
 	if err != nil {
 		fmt.Println("failed to instance contract", err)
 		return err
 	}
 	//调用合约函数
-	data0,err := instance.TotalAmount(nil)
-	fmt.Println(data0,err)
+	data0, err := instance.TotalAmount(nil)
+	fmt.Println(data0, err)
 
 	return err
 }
@@ -86,14 +85,14 @@ func CallTotalAmount() error {
 func CallBankName() error {
 
 	//使用之前部署得到的合约地址
-	instance, err := contracts.NewPdbank(common.HexToAddress("0xD55E88D9156355C584982Db2C96dD1C2c63788C2"), testClient)
+	instance, err := contracts.NewPdbank(common.HexToAddress(ServConf.Common.ContractAddr), testClient)
 	if err != nil {
 		fmt.Println("failed to instance contract", err)
 		return err
 	}
 	//调用合约函数
-	data0,err := instance.BankName(nil)
-	fmt.Println(data0,err)
+	data0, err := instance.BankName(nil)
+	fmt.Println(data0, err)
 
 	return err
 }
@@ -101,14 +100,14 @@ func CallBankName() error {
 func CallBalances() error {
 
 	//使用之前部署得到的合约地址
-	instance, err := contracts.NewPdbank(common.HexToAddress("0xD55E88D9156355C584982Db2C96dD1C2c63788C2"), testClient)
+	instance, err := contracts.NewPdbank(common.HexToAddress(ServConf.Common.ContractAddr), testClient)
 	if err != nil {
 		fmt.Println("failed to instance contract", err)
 		return err
 	}
 	//调用合约函数
-	data0,err := instance.Balances(nil,common.HexToAddress("0xD55E88D9156355C584982Db2C96dD1C2c63788C2"))
-	fmt.Println(data0,err)
+	data0, err := instance.Balances(nil, common.HexToAddress(ServConf.Common.TestAddr))
+	fmt.Println(data0, err)
 
 	return err
 }
@@ -116,20 +115,20 @@ func CallBalances() error {
 func CallWithdraw() error {
 
 	//2. 构造函数入口 - 合约对象
-	instance, err := contracts.NewPdbank(common.HexToAddress("0xD55E88D9156355C584982Db2C96dD1C2c63788C2"), testClient)
+	instance, err := contracts.NewPdbank(common.HexToAddress(ServConf.Common.ContractAddr), testClient)
 	if err != nil {
 		fmt.Println("failed to contract instance", err)
 		return err
 	}
 	//3. 设置签名
-	auth, err := MakeAuth("0x791443d21a76e16cc510b6b1684344d2a5ce751c", "123")
+	auth, err := MakeAuth(ServConf.Common.TestAddr, ServConf.Common.TestPass)
 	if err != nil {
 		fmt.Println("failed to MakeAuth auth", err)
 		return err
 	}
 	//4. 函数调用
 	auth.Value = big.NewInt(0)
-	ts, err := instance.Withdraw(auth,big.NewInt(1000))
+	ts, err := instance.Withdraw(auth, big.NewInt(1000))
 	if err != nil {
 		fmt.Println("failed to Deposit ", err)
 		return err
@@ -141,14 +140,14 @@ func CallWithdraw() error {
 func CallOwner() error {
 
 	//使用之前部署得到的合约地址
-	instance, err := contracts.NewPdbank(common.HexToAddress("0xD55E88D9156355C584982Db2C96dD1C2c63788C2"), testClient)
+	instance, err := contracts.NewPdbank(common.HexToAddress(ServConf.Common.ContractAddr), testClient)
 	if err != nil {
 		fmt.Println("failed to instance contract", err)
 		return err
 	}
 	//调用合约函数
-	data0,err := instance.Owner(nil)
-	fmt.Println(data0,err)
+	data0, err := instance.Owner(nil)
+	fmt.Println(data0, err)
 
 	return err
 }
@@ -156,19 +155,19 @@ func CallOwner() error {
 func CallDeposit() error {
 
 	//2. 构造函数入口 - 合约对象
-	instance, err := contracts.NewPdbank(common.HexToAddress("0xD55E88D9156355C584982Db2C96dD1C2c63788C2"), testClient)
+	instance, err := contracts.NewPdbank(common.HexToAddress(ServConf.Common.ContractAddr), testClient)
 	if err != nil {
 		fmt.Println("failed to contract instance", err)
 		return err
 	}
 	//3. 设置签名
-	auth, err := MakeAuth("0x791443d21a76e16cc510b6b1684344d2a5ce751c", "123")
+	auth, err := MakeAuth(ServConf.Common.TestAddr, ServConf.Common.TestPass)
 	if err != nil {
 		fmt.Println("failed to MakeAuth auth", err)
 		return err
 	}
 	//4. 函数调用
-	auth.Value = big.NewInt(0)
+	auth.Value = big.NewInt(100000000333)
 	ts, err := instance.Deposit(auth)
 	if err != nil {
 		fmt.Println("failed to Deposit ", err)
@@ -180,12 +179,12 @@ func CallDeposit() error {
 
 func CallDeploy() error {
 	//创建身份,需要私钥= pass+keystore文件
-	auth, err := MakeAuth("0x791443d21a76e16cc510b6b1684344d2a5ce751c", "123")
+	auth, err := MakeAuth(ServConf.Common.DeployAddr, ServConf.Common.DeployPass)
 	if err != nil {
 		fmt.Println("failed to MakeAuth auth", err)
 		return err
 	}
-	addr, ts, _, err := contracts.DeployPdbank(auth,testClient,"yekai")
+	addr, ts, _, err := contracts.DeployPdbank(auth, testClient, "yekai")
 	if err != nil {
 		fmt.Println("failed to DeployPdbank", err)
 		return err
